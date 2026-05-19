@@ -28,29 +28,18 @@ public class DemoApplication {
 	@CrossOrigin
 	@GetMapping("/")
 	public List<Task> getTasks() {
-		System.out.println("API EP '/' returns task-list of size " + tasks.size() + ".");
-
-		if (tasks.size() > 0) {
-			int i = 1;
-			for (Task task : tasks) {
-				System.out.println("-task " + (i++) + ": " + task.getTaskdescription());
-			}
-		}
-
 		return tasks;
 	}
 
 	@CrossOrigin
 	@PostMapping("/tasks")
 	public String addTask(@RequestBody String taskdescription) {
-		System.out.println("API EP '/tasks': '" + taskdescription + "'");
 		ObjectMapper mapper = new ObjectMapper();
 
 		try {
 			Task task = mapper.readValue(taskdescription, Task.class);
 
 			if (task.getTaskdescription() == null || task.getTaskdescription().trim().isEmpty()) {
-				System.out.println(">>>empty task descriptions are not allowed!");
 				return "redirect:/";
 			}
 
@@ -60,12 +49,10 @@ public class DemoApplication {
 
 			for (Task t : tasks) {
 				if (t.getTaskdescription().equals(task.getTaskdescription())) {
-					System.out.println(">>>task: '" + task.getTaskdescription() + "' already exists!");
 					return "redirect:/";
 				}
 			}
 
-			System.out.println("...adding task: '" + task.getTaskdescription() + "'");
 			tasks.add(task);
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
@@ -77,14 +64,12 @@ public class DemoApplication {
 	@CrossOrigin
 	@PostMapping("/update")
 	public String updateTask(@RequestBody String taskdescription) {
-		System.out.println("API EP '/update': '" + taskdescription + "'");
 		ObjectMapper mapper = new ObjectMapper();
 
 		try {
 			Task updatedTask = mapper.readValue(taskdescription, Task.class);
 
 			if (updatedTask.getTaskdescription() == null || updatedTask.getTaskdescription().trim().isEmpty()) {
-				System.out.println(">>>empty task descriptions are not allowed!");
 				return "redirect:/";
 			}
 
@@ -94,14 +79,11 @@ public class DemoApplication {
 
 			for (Task t : tasks) {
 				if (t.getTaskdescription().equals(updatedTask.getOldTaskdescription())) {
-					System.out.println("...updating task: '" + updatedTask.getOldTaskdescription() + "'");
 					t.setTaskdescription(updatedTask.getTaskdescription());
 					t.setPriority(updatedTask.getPriority());
 					return "redirect:/";
 				}
 			}
-
-			System.out.println(">>>task: '" + updatedTask.getOldTaskdescription() + "' not found!");
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}
@@ -109,40 +91,30 @@ public class DemoApplication {
 		return "redirect:/";
 	}
 
-	  @CrossOrigin
-  @PostMapping("/update")
-  public String updateTask(@RequestBody String taskdescription) {
-    System.out.println("API EP '/update': '" + taskdescription + "'");
-    ObjectMapper mapper = new ObjectMapper();
+	@CrossOrigin
+	@PostMapping("/done")
+	public String toggleDone(@RequestBody String taskdescription) {
+		ObjectMapper mapper = new ObjectMapper();
 
-    try {
-      Task updatedTask = mapper.readValue(taskdescription, Task.class);
+		try {
+			Task task = mapper.readValue(taskdescription, Task.class);
 
-      if (updatedTask.getTaskdescription() == null || updatedTask.getTaskdescription().trim().isEmpty()) {
-        System.out.println(">>>empty task descriptions are not allowed!");
-        return "redirect:/";
-      }
+			for (Task t : tasks) {
+				if (t.getTaskdescription().equals(task.getTaskdescription())) {
+					t.setCompleted(!t.isCompleted());
+					return "redirect:/";
+				}
+			}
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
 
-      for (Task t : tasks) {
-        if (t.getTaskdescription().equals(updatedTask.getOldTaskdescription())) {
-          System.out.println("...updating task: '" + updatedTask.getOldTaskdescription() + "'");
-          t.setTaskdescription(updatedTask.getTaskdescription());
-          return "redirect:/";
-        }
-      }
-
-      System.out.println(">>>task: '" + updatedTask.getOldTaskdescription() + "' not found!");
-    } catch (JsonProcessingException e) {
-      e.printStackTrace();
-    }
-
-    return "redirect:/";
-  }
+		return "redirect:/";
+	}
 
 	@CrossOrigin
 	@PostMapping("/delete")
 	public String delTask(@RequestBody String taskdescription) {
-		System.out.println("API EP '/delete': '" + taskdescription + "'");
 		ObjectMapper mapper = new ObjectMapper();
 
 		try {
@@ -153,13 +125,10 @@ public class DemoApplication {
 				Task t = it.next();
 
 				if (t.getTaskdescription().equals(task.getTaskdescription())) {
-					System.out.println("...deleting task: '" + task.getTaskdescription() + "'");
 					it.remove();
 					return "redirect:/";
 				}
 			}
-
-			System.out.println(">>>task: '" + task.getTaskdescription() + "' not found!");
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}
