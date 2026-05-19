@@ -109,6 +109,36 @@ public class DemoApplication {
 		return "redirect:/";
 	}
 
+	  @CrossOrigin
+  @PostMapping("/update")
+  public String updateTask(@RequestBody String taskdescription) {
+    System.out.println("API EP '/update': '" + taskdescription + "'");
+    ObjectMapper mapper = new ObjectMapper();
+
+    try {
+      Task updatedTask = mapper.readValue(taskdescription, Task.class);
+
+      if (updatedTask.getTaskdescription() == null || updatedTask.getTaskdescription().trim().isEmpty()) {
+        System.out.println(">>>empty task descriptions are not allowed!");
+        return "redirect:/";
+      }
+
+      for (Task t : tasks) {
+        if (t.getTaskdescription().equals(updatedTask.getOldTaskdescription())) {
+          System.out.println("...updating task: '" + updatedTask.getOldTaskdescription() + "'");
+          t.setTaskdescription(updatedTask.getTaskdescription());
+          return "redirect:/";
+        }
+      }
+
+      System.out.println(">>>task: '" + updatedTask.getOldTaskdescription() + "' not found!");
+    } catch (JsonProcessingException e) {
+      e.printStackTrace();
+    }
+
+    return "redirect:/";
+  }
+
 	@CrossOrigin
 	@PostMapping("/delete")
 	public String delTask(@RequestBody String taskdescription) {

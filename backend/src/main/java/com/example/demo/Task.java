@@ -10,16 +10,24 @@ public class Task {
 	private String oldTaskdescription;
 	private String priority = "Mittel";
 
-	public Task() {
-    }
+  public Task() {
+    }
 
-	public String getTaskdescription() {
-		return taskdescription;
-	}
+  public String getTaskdescription() {
+    return taskdescription;
+  }
 
-	public void setTaskdescription(String taskdescription) {
-		this.taskdescription = taskdescription;
-	}
+  public void setTaskdescription(String taskdescription) {
+    this.taskdescription = taskdescription;
+  }
+
+  public String getOldTaskdescription() {
+    return oldTaskdescription;
+  }
+
+  public void setOldTaskdescription(String oldTaskdescription) {
+    this.oldTaskdescription = oldTaskdescription;
+  }
 
 	public String getOldTaskdescription() {
 		return oldTaskdescription;
