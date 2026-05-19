@@ -9,6 +9,7 @@ function App() {
   const [editingTask, setEditingTask] = useState(null);
   const [editingText, setEditingText] = useState("");
   const [editingPriority, setEditingPriority] = useState("Mittel");
+  const [filter, setFilter] = useState("Alle");
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -111,9 +112,15 @@ function App() {
   };
 
   const renderTasks = (todos) => {
-    const sortedTodos = [...todos].sort(
-      (a, b) => priorityValue(b.priority) - priorityValue(a.priority),
-    );
+const filteredTodos = todos.filter((todo) => {
+  if (filter === "Offen") return true;
+  if (filter === "Erledigt") return false;
+  return true;
+});
+
+const sortedTodos = [...filteredTodos].sort(
+  (a, b) => priorityValue(b.priority) - priorityValue(a.priority),
+);
 
     return (
       <ul className="todo-list">
@@ -193,6 +200,12 @@ function App() {
 
           <button type="submit">Absenden</button>
         </form>
+
+        <div className="filter-buttons">
+            <button type="button" onClick={() => setFilter("Alle")}>Alle</button>
+          <button type="button" onClick={() => setFilter("Offen")}>Offen</button>
+          <button type="button" onClick={() => setFilter("Erledigt")}>Erledigt</button>
+        </div>
 
         <div>{renderTasks(todos)}</div>
       </header>
