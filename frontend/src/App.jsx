@@ -1,19 +1,16 @@
-import { useEffect, useState } from 'react'
-import logo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import logo from "./assets/react.svg";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
-  const [todos, setTodos] = useState([]);
-  const [taskdescription, setTaskdescription] = useState("");
-  const [editingTask, setEditingTask] = useState(null);
-  const [editingText, setEditingText] = useState("");
+  const [todos, setTodos] = useState([]);
+  const [taskdescription, setTaskdescription] = useState("");
+  const [priority, setPriority] = useState("Mittel");
+  const [editingTask, setEditingTask] = useState(null);
+  const [editingText, setEditingText] = useState("");
+  const [editingPriority, setEditingPriority] = useState("Mittel");
 
-  /** Is called when the html form is submitted. It sends a POST request to the API endpoint '/tasks' and updates the component's state with the new todo.
-  ** In this case a new taskdecription is added to the actual list on the server.
-  */
-  const handleSubmit = event => {
+  const handleSubmit = (event) => {
     event.preventDefault();
         if (taskdescription.trim() === "") {
       alert("Leere Todos dürfen nicht gespeichert werden.");
@@ -23,152 +20,184 @@ function App() {
     fetch("http://localhost:8080/tasks", {  // API endpoint (the complete URL!) to save a taskdescription
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ taskdescription: taskdescription.trim() }) // both 'taskdescription' are identical to Task-Class attribute in Spring
+      body: JSON.stringify({
+        taskdescription: taskdescription.trim(),
+        priority: priority,
+      }),
     })
-    .then(response => {
-      console.log("Receiving answer after sending to Spring-Server: ");
-      console.log(response);
-      window.location.href = "/";
-      setTaskdescription("");             // clear input field, preparing it for the next input
-    })
-    .catch(error => console.log(error))
-  }
+      .then((response) => {
+        console.log("Receiving answer after sending to Spring-Server: ");
+        console.log(response);
+        window.location.href = "/";
+        setTaskdescription("");
+        setPriority("Mittel");
+      })
+      .catch((error) => console.log(error));
+  };
 
-   /** Is called when ever the html input field value below changes to update the component's state.
-  ** This is, because the submit should not take the field value directly.
-  ** The task property in the state is used to store the current value of the input field as the user types into it.
-  ** This is necessary because React operates on the principle of state and props, which means that a component's state
-  ** determines the component's behavior and render.
-  ** If we used the value directly from the HTML form field, we wouldn't be able to update the component's state and react to changes in the input field.
-  */
-  const handleChange = event => {
+  const handleChange = (event) => {
     setTaskdescription(event.target.value);
-  }
+  };
 
-
-  /** Is called when the component is mounted (after any refresh or F5).
-  ** It updates the component's state with the fetched todos from the API Endpoint '/'.
-  */
   useEffect(() => {
-    fetch("http://localhost:8080/").then(response => response.json()).then(data => {
-      setTodos(data);
-    });
+    fetch("http://localhost:8080/")
+      .then((response) => response.json())
+      .then((data) => {
+        setTodos(data);
+      });
   }, []);
 
-
- /** Is called when the Done-Button is pressed. It sends a POST request to the API endpoint '/delete' and updates the component's state with the new todo.
-  ** In this case if the task with the unique taskdescription is found on the server, it will be removed from the list.
-  */
   const handleDelete = (event, taskdescription) => {
-    console.log("Sending task description to delete on Spring-Server: "+taskdescription);
-    fetch(`http://localhost:8080/delete`, { // API endpoint (the complete URL!) to delete an existing taskdescription in the list
+    fetch("http://localhost:8080/delete", {
       method: "POST",
       body: JSON.stringify({ taskdescription: taskdescription }),
       headers: {
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     })
-    .then(response => {
-      console.log("Receiving answer after deleting on Spring-Server: ");
-      console.log(response);
-      window.location.href = "/";
+      .then((response) => {
+        console.log("Receiving answer after deleting on Spring-Server: ");
+        console.log(response);
+        window.location.href = "/";
+      })
+      .catch((error) => console.log(error));
+  };
+
+  const startEdit = (todo) => {
+    setEditingTask(todo.taskdescription);
+    setEditingText(todo.taskdescription);
+    setEditingPriority(todo.priority || "Mittel");
+  };
+
+  const cancelEdit = () => {
+    setEditingTask(null);
+    setEditingText("");
+    setEditingPriority("Mittel");
+  };
+
+  const saveEdit = (event) => {
+    event.preventDefault();
+
+    if (editingText.trim() === "") {
+      alert("Leere Todos dürfen nicht gespeichert werden.");
+      return;
+    }
+
+    fetch("http://localhost:8080/update", {
+      method: "POST",
+      body: JSON.stringify({
+        oldTaskdescription: editingTask,
+        taskdescription: editingText.trim(),
+        priority: editingPriority,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
     })
-    .catch(error => console.log(error))
-  }
+      .then((response) => {
+        console.log("Receiving answer after updating on Spring-Server: ");
+        console.log(response);
+        window.location.href = "/";
+      })
+      .catch((error) => console.log(error));
+  };
 
-    const startEdit = (todo) => {
-    setEditingTask(todo.taskdescription);
-    setEditingText(todo.taskdescription);
-  }
+  const priorityValue = (priority) => {
+    if (priority === "Hoch") return 3;
+    if (priority === "Mittel") return 2;
+    return 1;
+  };
 
-  const cancelEdit = () => {
-    setEditingTask(null);
-    setEditingText("");
-  }
+  const renderTasks = (todos) => {
+    const sortedTodos = [...todos].sort(
+      (a, b) => priorityValue(b.priority) - priorityValue(a.priority),
+    );
 
-  const saveEdit = (event) => {
-    event.preventDefault();
+    return (
+      <ul className="todo-list">
+        {sortedTodos.map((todo, index) => (
+          <li key={todo.taskdescription}>
+            {editingTask === todo.taskdescription ? (
+              <form onSubmit={saveEdit} className="edit-form">
+                <input
+                  type="text"
+                  value={editingText}
+                  onChange={(event) => setEditingText(event.target.value)}
+                />
 
-    if (editingText.trim() === "") {
-      alert("Leere Todos dürfen nicht gespeichert werden.");
-      return;
-    }
+                <select
+                  value={editingPriority}
+                  onChange={(event) => setEditingPriority(event.target.value)}
+                >
+                  <option value="Niedrig">Niedrig</option>
+                  <option value="Mittel">Mittel</option>
+                  <option value="Hoch">Hoch</option>
+                </select>
 
-    fetch("http://localhost:8080/update", {
-      method: "POST",
-      body: JSON.stringify({
-        oldTaskdescription: editingTask,
-        taskdescription: editingText.trim()
-      }),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    })
-    .then(response => {
-      console.log("Receiving answer after updating on Spring-Server: ");
-      console.log(response);
-      window.location.href = "/";
-    })
-    .catch(error => console.log(error))
-  }
+                <button type="submit">Speichern</button>
+                <button type="button" onClick={cancelEdit}>
+                  Abbrechen
+                </button>
+              </form>
+            ) : (
+              <>
+                <span>
+                  {"Task " + (index + 1) + ": " + todo.taskdescription}
+                </span>
 
-  /**
-   * render all task lines
-   * @param {*} todos : Task list
-   * @returns html code snippet
-  */
-  const renderTasks = (todos) => {
-    return (
-      <ul className="todo-list">
-        {todos.map((todo, index) => (
-          <li key={todo.taskdescription}>
-            {editingTask === todo.taskdescription ? (
-              <form onSubmit={saveEdit} className="edit-form">
-                <input
-                  type="text"
-                  value={editingText}
-                  onChange={(event) => setEditingText(event.target.value)}
-                />
-                <button type="submit">Speichern</button>
-                <button type="button" onClick={cancelEdit}>Abbrechen</button>
-              </form>
-            ) : (
-              <>
-                <span>{"Task " + (index+1) + ": "+ todo.taskdescription}</span>
-                <button onClick={() => startEdit(todo)}>Bearbeiten</button>
-                <button onClick={(event) => handleDelete(event, todo.taskdescription) }>&#10004;</button>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
-    );
-  }
+                <span
+                  className={
+                    "priority priority-" +
+                    (todo.priority || "Mittel").toLowerCase()
+                  }
+                >
+                  {todo.priority || "Mittel"}
+                </span>
+
+                <button onClick={() => startEdit(todo)}>Bearbeiten</button>
+
+                <button
+                  onClick={(event) => handleDelete(event, todo.taskdescription)}
+                >
+                  &#10004;
+                </button>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+    );
+  };
 
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <h1>
-          ToDo Liste
-        </h1>
-        <form onSubmit={handleSubmit} className='todo-form'>
+        <h1>ToDo Liste</h1>
+
+        <form onSubmit={handleSubmit} className="todo-form">
           <label htmlFor="taskdescription">Neues Todo anlegen:</label>
-          <input
-            type="text"
-            value={taskdescription}
-            onChange={handleChange}
-          />
+
+          <input type="text" value={taskdescription} onChange={handleChange} />
+
+          <select
+            value={priority}
+            onChange={(event) => setPriority(event.target.value)}
+          >
+            <option value="Niedrig">Niedrig</option>
+            <option value="Mittel">Mittel</option>
+            <option value="Hoch">Hoch</option>
+          </select>
+
           <button type="submit">Absenden</button>
         </form>
-        <div>
-          {renderTasks(todos)}
-        </div>
+
+        <div>{renderTasks(todos)}</div>
       </header>
     </div>
   );
 }
 
-export default App
+export default App;
