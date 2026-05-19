@@ -17,6 +17,54 @@
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
+.priority {
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-weight: bold;
+  color: black;
+}
+
+.priority-niedrig {
+  background-color: lightgreen;
+}
+
+.priority-mittel {
+  background-color: gold;
+}
+
+.priority-hoch {
+  background-color: tomato;
+}
+.todo-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
+}
+
+.todo-list li {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.filter-buttons {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+}
+.todo-form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
 
 @keyframes logo-spin {
   from {
@@ -42,21 +90,21 @@
 }
 
 .todo-list {
-  list-style: none;
-  padding: 0;
+    list-style: none;
+    padding: 0;
 }
 
 .todo-list li {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0.5rem;
 }
 
 .edit-form {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  align-items: center;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    align-items: center;
 }
