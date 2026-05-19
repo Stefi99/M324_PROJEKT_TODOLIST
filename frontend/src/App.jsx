@@ -5,21 +5,27 @@ import './App.css'
 
 function App() {
   const [count, setCount] = useState(0)
-  const [todos, setTodos] = useState([]);
-  const [taskdescription, setTaskdescription] = useState("");
+  const [todos, setTodos] = useState([]);
+  const [taskdescription, setTaskdescription] = useState("");
+  const [editingTask, setEditingTask] = useState(null);
+  const [editingText, setEditingText] = useState("");
 
   /** Is called when the html form is submitted. It sends a POST request to the API endpoint '/tasks' and updates the component's state with the new todo.
   ** In this case a new taskdecription is added to the actual list on the server.
   */
   const handleSubmit = event => {
     event.preventDefault();
+        if (taskdescription.trim() === "") {
+      alert("Leere Todos dürfen nicht gespeichert werden.");
+      return;
+    }
     console.log("Sending task description to Spring-Server: "+taskdescription);
     fetch("http://localhost:8080/tasks", {  // API endpoint (the complete URL!) to save a taskdescription
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ taskdescription: taskdescription }) // both 'taskdescription' are identical to Task-Class attribute in Spring
+      body: JSON.stringify({ taskdescription: taskdescription.trim() }) // both 'taskdescription' are identical to Task-Class attribute in Spring
     })
     .then(response => {
       console.log("Receiving answer after sending to Spring-Server: ");
@@ -72,23 +78,74 @@ function App() {
     .catch(error => console.log(error))
   }
 
+    const startEdit = (todo) => {
+    setEditingTask(todo.taskdescription);
+    setEditingText(todo.taskdescription);
+  }
+
+  const cancelEdit = () => {
+    setEditingTask(null);
+    setEditingText("");
+  }
+
+  const saveEdit = (event) => {
+    event.preventDefault();
+
+    if (editingText.trim() === "") {
+      alert("Leere Todos dürfen nicht gespeichert werden.");
+      return;
+    }
+
+    fetch("http://localhost:8080/update", {
+      method: "POST",
+      body: JSON.stringify({
+        oldTaskdescription: editingTask,
+        taskdescription: editingText.trim()
+      }),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
+    .then(response => {
+      console.log("Receiving answer after updating on Spring-Server: ");
+      console.log(response);
+      window.location.href = "/";
+    })
+    .catch(error => console.log(error))
+  }
+
   /**
    * render all task lines
    * @param {*} todos : Task list
    * @returns html code snippet
   */
-  const renderTasks = (todos) => {
-    return (
-      <ul className="todo-list">
-        {todos.map((todo, index) => (
-          <li key={todo.taskdescription}>
-            <span>{"Task " + (index+1) + ": "+ todo.taskdescription}</span>
-            <button onClick={(event) => handleDelete(event, todo.taskdescription) }>&#10004;</button>
-          </li>
-        ))}
-      </ul>
-    );
-  }
+  const renderTasks = (todos) => {
+    return (
+      <ul className="todo-list">
+        {todos.map((todo, index) => (
+          <li key={todo.taskdescription}>
+            {editingTask === todo.taskdescription ? (
+              <form onSubmit={saveEdit} className="edit-form">
+                <input
+                  type="text"
+                  value={editingText}
+                  onChange={(event) => setEditingText(event.target.value)}
+                />
+                <button type="submit">Speichern</button>
+                <button type="button" onClick={cancelEdit}>Abbrechen</button>
+              </form>
+            ) : (
+              <>
+                <span>{"Task " + (index+1) + ": "+ todo.taskdescription}</span>
+                <button onClick={() => startEdit(todo)}>Bearbeiten</button>
+                <button onClick={(event) => handleDelete(event, todo.taskdescription) }>&#10004;</button>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+    );
+  }
 
   return (
     <div className="App">
