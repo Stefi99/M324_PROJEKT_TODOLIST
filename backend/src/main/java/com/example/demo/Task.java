@@ -5,18 +5,27 @@ package com.example.demo;
  * @author luh
  */
 public class Task {
-	
-	private String taskdescription; // must have the EXACT name as his React state property and may not be ignored!
+  
+  private String taskdescription;
+  private String oldTaskdescription;
 
-	public Task() {
-    }
+  public Task() {
+    }
 
-	public String getTaskdescription() { // do not apply camel-case here! Its a Bean!
-		return taskdescription;
-	}
+  public String getTaskdescription() {
+    return taskdescription;
+  }
 
-	public void setTaskdescription(String taskdescription) { // do not apply camel-case here! Its a Bean!
-		this.taskdescription = taskdescription;
-	}
+  public void setTaskdescription(String taskdescription) {
+    this.taskdescription = taskdescription;
+  }
+
+  public String getOldTaskdescription() {
+    return oldTaskdescription;
+  }
+
+  public void setOldTaskdescription(String oldTaskdescription) {
+    this.oldTaskdescription = oldTaskdescription;
+  }
 
 }
