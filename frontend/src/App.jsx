@@ -11,14 +11,26 @@ function App() {
   const [editingPriority, setEditingPriority] = useState("Mittel");
   const [filter, setFilter] = useState("Alle");
 
+  const loadTodos = () => {
+    fetch("http://localhost:8080/")
+      .then((response) => response.json())
+      .then((data) => setTodos(data))
+      .catch((error) => console.log(error));
+  };
+
+  useEffect(() => {
+    loadTodos();
+  }, []);
+
   const handleSubmit = (event) => {
     event.preventDefault();
-        if (taskdescription.trim() === "") {
-      alert("Leere Todos dürfen nicht gespeichert werden.");
-      return;
-    }
-    console.log("Sending task description to Spring-Server: "+taskdescription);
-    fetch("http://localhost:8080/tasks", {  // API endpoint (the complete URL!) to save a taskdescription
+
+    if (taskdescription.trim() === "") {
+      alert("Leere Todos dürfen nicht gespeichert werden.");
+      return;
+    }
+
+    fetch("http://localhost:8080/tasks", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -26,43 +38,42 @@ function App() {
       body: JSON.stringify({
         taskdescription: taskdescription.trim(),
         priority: priority,
+        completed: false,
       }),
     })
-      .then((response) => {
-        console.log("Receiving answer after sending to Spring-Server: ");
-        console.log(response);
-        window.location.href = "/";
+      .then(() => {
         setTaskdescription("");
         setPriority("Mittel");
+        loadTodos();
       })
       .catch((error) => console.log(error));
   };
 
-  const handleChange = (event) => {
-    setTaskdescription(event.target.value);
-  };
-
-  useEffect(() => {
-    fetch("http://localhost:8080/")
-      .then((response) => response.json())
-      .then((data) => {
-        setTodos(data);
-      });
-  }, []);
-
-  const handleDelete = (event, taskdescription) => {
-    fetch("http://localhost:8080/delete", {
+  const handleDone = (todo) => {
+    fetch("http://localhost:8080/done", {
       method: "POST",
-      body: JSON.stringify({ taskdescription: taskdescription }),
       headers: {
         "Content-Type": "application/json",
       },
+      body: JSON.stringify({
+        taskdescription: todo.taskdescription,
+      }),
     })
-      .then((response) => {
-        console.log("Receiving answer after deleting on Spring-Server: ");
-        console.log(response);
-        window.location.href = "/";
-      })
+      .then(() => loadTodos())
+      .catch((error) => console.log(error));
+  };
+
+  const handleDelete = (todo) => {
+    fetch("http://localhost:8080/delete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        taskdescription: todo.taskdescription,
+      }),
+    })
+      .then(() => loadTodos())
       .catch((error) => console.log(error));
   };
 
@@ -88,19 +99,18 @@ function App() {
 
     fetch("http://localhost:8080/update", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         oldTaskdescription: editingTask,
         taskdescription: editingText.trim(),
         priority: editingPriority,
       }),
-      headers: {
-        "Content-Type": "application/json",
-      },
     })
-      .then((response) => {
-        console.log("Receiving answer after updating on Spring-Server: ");
-        console.log(response);
-        window.location.href = "/";
+      .then(() => {
+        cancelEdit();
+        loadTodos();
       })
       .catch((error) => console.log(error));
   };
@@ -111,72 +121,15 @@ function App() {
     return 1;
   };
 
-  const renderTasks = (todos) => {
-const filteredTodos = todos.filter((todo) => {
-  if (filter === "Offen") return true;
-  if (filter === "Erledigt") return false;
-  return true;
-});
+  const filteredTodos = todos.filter((todo) => {
+    if (filter === "Offen") return !todo.completed;
+    if (filter === "Erledigt") return todo.completed;
+    return true;
+  });
 
-const sortedTodos = [...filteredTodos].sort(
-  (a, b) => priorityValue(b.priority) - priorityValue(a.priority),
-);
-
-    return (
-      <ul className="todo-list">
-        {sortedTodos.map((todo, index) => (
-          <li key={todo.taskdescription}>
-            {editingTask === todo.taskdescription ? (
-              <form onSubmit={saveEdit} className="edit-form">
-                <input
-                  type="text"
-                  value={editingText}
-                  onChange={(event) => setEditingText(event.target.value)}
-                />
-
-                <select
-                  value={editingPriority}
-                  onChange={(event) => setEditingPriority(event.target.value)}
-                >
-                  <option value="Niedrig">Niedrig</option>
-                  <option value="Mittel">Mittel</option>
-                  <option value="Hoch">Hoch</option>
-                </select>
-
-                <button type="submit">Speichern</button>
-                <button type="button" onClick={cancelEdit}>
-                  Abbrechen
-                </button>
-              </form>
-            ) : (
-              <>
-                <span>
-                  {"Task " + (index + 1) + ": " + todo.taskdescription}
-                </span>
-
-                <span
-                  className={
-                    "priority priority-" +
-                    (todo.priority || "Mittel").toLowerCase()
-                  }
-                >
-                  {todo.priority || "Mittel"}
-                </span>
-
-                <button onClick={() => startEdit(todo)}>Bearbeiten</button>
-
-                <button
-                  onClick={(event) => handleDelete(event, todo.taskdescription)}
-                >
-                  &#10004;
-                </button>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
-    );
-  };
+  const sortedTodos = [...filteredTodos].sort(
+    (a, b) => priorityValue(b.priority) - priorityValue(a.priority),
+  );
 
   return (
     <div className="App">
@@ -187,7 +140,12 @@ const sortedTodos = [...filteredTodos].sort(
         <form onSubmit={handleSubmit} className="todo-form">
           <label htmlFor="taskdescription">Neues Todo anlegen:</label>
 
-          <input type="text" value={taskdescription} onChange={handleChange} />
+          <input
+            id="taskdescription"
+            type="text"
+            value={taskdescription}
+            onChange={(event) => setTaskdescription(event.target.value)}
+          />
 
           <select
             value={priority}
@@ -202,12 +160,76 @@ const sortedTodos = [...filteredTodos].sort(
         </form>
 
         <div className="filter-buttons">
-            <button type="button" onClick={() => setFilter("Alle")}>Alle</button>
-          <button type="button" onClick={() => setFilter("Offen")}>Offen</button>
-          <button type="button" onClick={() => setFilter("Erledigt")}>Erledigt</button>
+          <button type="button" onClick={() => setFilter("Alle")}>
+            Alle
+          </button>
+          <button type="button" onClick={() => setFilter("Offen")}>
+            Offen
+          </button>
+          <button type="button" onClick={() => setFilter("Erledigt")}>
+            Erledigt
+          </button>
         </div>
 
-        <div>{renderTasks(todos)}</div>
+        <ul className="todo-list">
+          {sortedTodos.map((todo, index) => (
+            <li
+              key={todo.taskdescription}
+              className={todo.completed ? "completed" : ""}
+            >
+              {editingTask === todo.taskdescription ? (
+                <form onSubmit={saveEdit} className="edit-form">
+                  <input
+                    type="text"
+                    value={editingText}
+                    onChange={(event) => setEditingText(event.target.value)}
+                  />
+
+                  <select
+                    value={editingPriority}
+                    onChange={(event) => setEditingPriority(event.target.value)}
+                  >
+                    <option value="Niedrig">Niedrig</option>
+                    <option value="Mittel">Mittel</option>
+                    <option value="Hoch">Hoch</option>
+                  </select>
+
+                  <button type="submit">Speichern</button>
+                  <button type="button" onClick={cancelEdit}>
+                    Abbrechen
+                  </button>
+                </form>
+              ) : (
+                <>
+                  <span>
+                    Task {index + 1}: {todo.taskdescription}
+                  </span>
+
+                  <span
+                    className={
+                      "priority priority-" +
+                      (todo.priority || "Mittel").toLowerCase()
+                    }
+                  >
+                    {todo.priority || "Mittel"}
+                  </span>
+
+                  <button type="button" onClick={() => startEdit(todo)}>
+                    Bearbeiten
+                  </button>
+
+                  <button type="button" onClick={() => handleDone(todo)}>
+                    {todo.completed ? "Offen setzen" : "Erledigt"}
+                  </button>
+
+                  <button type="button" onClick={() => handleDelete(todo)}>
+                    Löschen
+                  </button>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
       </header>
     </div>
   );
