@@ -39,3 +39,35 @@ Kommentaren vor allem in App.js zu finden.
 - Test Umbegung mit Unit-Tests erweitern
 
 (Ausgaben für white-box debugging sind bereits auf den beiden Server vorhanden)
+
+## GitHub Actions Pipeline
+
+Für dieses Projekt wurde eine GitHub Actions Pipeline erstellt.  
+Die Pipeline wird automatisch bei jedem Pull Request auf den Branch `main` gestartet.
+
+Die Pipeline besteht aus zwei Jobs:
+
+### Frontend Build
+
+Das React-Frontend wird im Ordner `frontend` gebaut.  
+Dafür wird Node.js Version 20 verwendet, da darin npm bereits verfügbar ist.
+
+Befehle:
+
+```bash
+npm install
+npm run build
+```
+Dabei werden aus dem React-Projekt HTML-, CSS- und JavaScript-Dateien generiert.
+
+### Backend Build
+
+Das Spring-Boot-Backend wird im Ordner `backend` gebaut.  
+Dafür wird Java21 verwendet.
+
+Befehle:
+
+```bash
+mvn clean package
+```
+Dabei wird das Java-Projekt kompiliert und eine Build-Datei erzeugt.
