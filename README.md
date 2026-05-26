@@ -71,3 +71,5 @@ Befehle:
 mvn clean package
 ```
 Dabei wird das Java-Projekt kompiliert und eine Build-Datei erzeugt.
+
+## Neue Funktion hinzufügen
