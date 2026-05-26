@@ -74,3 +74,5 @@ Dabei wird das Java-Projekt kompiliert und eine Build-Datei erzeugt.
 
 ## Neue Funktion hinzufügen
 Die Todo-App wurde verbessert.
+Die Todo-App wurde erweitert.
+Die Todo-App ist neu.
