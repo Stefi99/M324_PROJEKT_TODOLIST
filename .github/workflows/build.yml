@@ -29,6 +29,12 @@ jobs:
       - name: Build frontend
         run: npm run build
 
+      - name: Upload frontend build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/dist
+
   backend-build:
     name: Build Spring Boot Backend
     runs-on: ubuntu-latest
@@ -49,3 +55,9 @@ jobs:
 
       - name: Build backend with Maven
         run: mvn clean package
+
+      - name: Upload backend jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: backend/target/*.jar
