@@ -30,7 +30,7 @@ function App() {
       return;
     }
 
-    fetch("http://localhost:8080/tasks", {
+    fetch("http://localhost:8080/api/v1/tasks", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -50,7 +50,7 @@ function App() {
   };
 
   const handleDone = (todo) => {
-    fetch("http://localhost:8080/done", {
+    fetch("http://localhost:8080/api/v1/done", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -64,7 +64,7 @@ function App() {
   };
 
   const handleDelete = (todo) => {
-    fetch("http://localhost:8080/delete", {
+    fetch("http://localhost:8080/api/v1/delete", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -97,7 +97,7 @@ function App() {
       return;
     }
 
-    fetch("http://localhost:8080/update", {
+    fetch("http://localhost:8080/api/v1/update", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

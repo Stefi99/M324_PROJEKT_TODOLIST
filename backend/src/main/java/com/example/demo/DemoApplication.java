@@ -26,13 +26,14 @@ public class DemoApplication {
 	private List<Task> tasks = new ArrayList<>();
 
 	@CrossOrigin
-	@GetMapping("/")
-	public List<Task> getTasks() {
-		return tasks;
+	@GetMapping("/api/v1/tasks")
+	public List<Task> getTasks()
+	{
+    	return tasks;
 	}
 
 	@CrossOrigin
-	@PostMapping("/tasks")
+	@PostMapping("/api/v1/tasks")
 	public String addTask(@RequestBody String taskdescription) {
 		ObjectMapper mapper = new ObjectMapper();
 
@@ -62,7 +63,7 @@ public class DemoApplication {
 	}
 
 	@CrossOrigin
-	@PostMapping("/update")
+	@PostMapping("/api/v1/update")
 	public String updateTask(@RequestBody String taskdescription) {
 		ObjectMapper mapper = new ObjectMapper();
 
@@ -92,7 +93,7 @@ public class DemoApplication {
 	}
 
 	@CrossOrigin
-	@PostMapping("/done")
+	@PostMapping("/api/v1/done")
 	public String toggleDone(@RequestBody String taskdescription) {
 		ObjectMapper mapper = new ObjectMapper();
 
@@ -113,7 +114,7 @@ public class DemoApplication {
 	}
 
 	@CrossOrigin
-	@PostMapping("/delete")
+	@PostMapping("/api/v1/delete")
 	public String delTask(@RequestBody String taskdescription) {
 		ObjectMapper mapper = new ObjectMapper();
 
