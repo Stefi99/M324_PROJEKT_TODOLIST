@@ -1,0 +1,18 @@
+services:
+
+  backend:
+    image: ghcr.io/Stefi99/todo-backend:latest
+    container_name: todo-backend
+
+    ports:
+      - "8080:8080"
+
+  frontend:
+    image: ghcr.io/Stefi99/todo-frontend:latest
+    container_name: todo-frontend
+
+    ports:
+      - "80:80"
+
+    depends_on:
+      - backend
