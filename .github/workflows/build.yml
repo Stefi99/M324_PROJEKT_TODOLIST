@@ -74,7 +74,7 @@ jobs:
 
       - name: Run Jest tests
         working-directory: frontend
-        run: npm test -- --runInBand
+        run: npm test -- --runInBand --watchAll=false
 
   backend-build:
     name: Build Spring Boot Backend
