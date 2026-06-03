@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import App from "./App";
 
 describe("App component", () => {
@@ -32,5 +32,134 @@ describe("App component", () => {
     fireEvent.change(inputElement, { target: { value: "Test Aufgabe" } });
 
     expect(inputElement.value).toBe("Test Aufgabe");
+  });
+});
+describe("Systemtests Todo App", () => {
+  beforeEach(() => {
+    global.fetch = jest.fn();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("fügt ein neues Todo hinzu, wenn der Benutzer Text eingibt und auf Absenden klickt", async () => {
+    fetch
+      .mockResolvedValueOnce({
+        json: () => Promise.resolve([]),
+      })
+      .mockResolvedValueOnce({
+        json: () => Promise.resolve({}),
+      })
+      .mockResolvedValueOnce({
+        json: () =>
+          Promise.resolve([
+            {
+              taskdescription: "Mathe lernen",
+              priority: "Mittel",
+              completed: false,
+            },
+          ]),
+      });
+
+    render(<App />);
+
+    const inputElement = screen.getByLabelText(/Neues Todo anlegen/i);
+
+    fireEvent.change(inputElement, {
+      target: { value: "Mathe lernen" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Absenden/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Mathe lernen/i)).toBeInTheDocument();
+    });
+  });
+
+  test("setzt ein Todo auf erledigt, wenn der Benutzer auf Erledigt klickt", async () => {
+    fetch
+      .mockResolvedValueOnce({
+        json: () =>
+          Promise.resolve([
+            {
+              taskdescription: "Mathe lernen",
+              priority: "Mittel",
+              completed: false,
+            },
+          ]),
+      })
+      .mockResolvedValueOnce({
+        json: () => Promise.resolve({}),
+      })
+      .mockResolvedValueOnce({
+        json: () =>
+          Promise.resolve([
+            {
+              taskdescription: "Mathe lernen",
+              priority: "Mittel",
+              completed: true,
+            },
+          ]),
+      });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Mathe lernen/i)).toBeInTheDocument();
+    });
+
+    const erledigtButtons = screen.getAllByRole("button", {
+      name: /Erledigt/i,
+    });
+    fireEvent.click(erledigtButtons[1]);
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(
+        "http://localhost:8080/api/v1/done",
+        expect.objectContaining({
+          method: "POST",
+        }),
+      );
+    });
+  });
+  test("löscht ein Todo, wenn der Benutzer auf Löschen klickt", async () => {
+    fetch
+      .mockResolvedValueOnce({
+        json: () =>
+          Promise.resolve([
+            {
+              taskdescription: "Mathe lernen",
+              priority: "Mittel",
+              completed: false,
+            },
+          ]),
+      })
+      .mockResolvedValueOnce({
+        json: () => Promise.resolve({}),
+      })
+      .mockResolvedValueOnce({
+        json: () => Promise.resolve([]),
+      });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Mathe lernen/i)).toBeInTheDocument();
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Löschen/i,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(
+        "http://localhost:8080/api/v1/delete",
+        expect.objectContaining({
+          method: "POST",
+        }),
+      );
+    });
   });
 });
