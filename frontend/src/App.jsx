@@ -12,7 +12,7 @@ function App() {
   const [filter, setFilter] = useState("Alle");
 
   const loadTodos = () => {
-    fetch("http://localhost:8080/")
+    fetch("http://localhost:8080/api/v1/tasks")
       .then((response) => response.json())
       .then((data) => setTodos(data))
       .catch((error) => console.log(error));
