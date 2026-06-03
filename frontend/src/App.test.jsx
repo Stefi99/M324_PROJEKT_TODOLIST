@@ -76,4 +76,50 @@ describe("Systemtests Todo App", () => {
       expect(screen.getByText(/Mathe lernen/i)).toBeInTheDocument();
     });
   });
+
+  test("setzt ein Todo auf erledigt, wenn der Benutzer auf Erledigt klickt", async () => {
+    fetch
+      .mockResolvedValueOnce({
+        json: () =>
+          Promise.resolve([
+            {
+              taskdescription: "Mathe lernen",
+              priority: "Mittel",
+              completed: false,
+            },
+          ]),
+      })
+      .mockResolvedValueOnce({
+        json: () => Promise.resolve({}),
+      })
+      .mockResolvedValueOnce({
+        json: () =>
+          Promise.resolve([
+            {
+              taskdescription: "Mathe lernen",
+              priority: "Mittel",
+              completed: true,
+            },
+          ]),
+      });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Mathe lernen/i)).toBeInTheDocument();
+    });
+
+    const erledigtButtons = screen.getAllByRole("button", {
+      name: /Erledigt/i,
+    });
+    fireEvent.click(erledigtButtons[1]);
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(
+        "http://localhost:8080/api/v1/done",
+        expect.objectContaining({
+          method: "POST",
+        }),
+      );
+    });
+  });
 });
