@@ -122,4 +122,44 @@ describe("Systemtests Todo App", () => {
       );
     });
   });
+  test("löscht ein Todo, wenn der Benutzer auf Löschen klickt", async () => {
+    fetch
+      .mockResolvedValueOnce({
+        json: () =>
+          Promise.resolve([
+            {
+              taskdescription: "Mathe lernen",
+              priority: "Mittel",
+              completed: false,
+            },
+          ]),
+      })
+      .mockResolvedValueOnce({
+        json: () => Promise.resolve({}),
+      })
+      .mockResolvedValueOnce({
+        json: () => Promise.resolve([]),
+      });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Mathe lernen/i)).toBeInTheDocument();
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Löschen/i,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(
+        "http://localhost:8080/api/v1/delete",
+        expect.objectContaining({
+          method: "POST",
+        }),
+      );
+    });
+  });
 });
