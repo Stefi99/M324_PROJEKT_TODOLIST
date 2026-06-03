@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import App from "./App";
 
 describe("App component", () => {
@@ -32,5 +32,48 @@ describe("App component", () => {
     fireEvent.change(inputElement, { target: { value: "Test Aufgabe" } });
 
     expect(inputElement.value).toBe("Test Aufgabe");
+  });
+});
+describe("Systemtests Todo App", () => {
+  beforeEach(() => {
+    global.fetch = jest.fn();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("fügt ein neues Todo hinzu, wenn der Benutzer Text eingibt und auf Absenden klickt", async () => {
+    fetch
+      .mockResolvedValueOnce({
+        json: () => Promise.resolve([]),
+      })
+      .mockResolvedValueOnce({
+        json: () => Promise.resolve({}),
+      })
+      .mockResolvedValueOnce({
+        json: () =>
+          Promise.resolve([
+            {
+              taskdescription: "Mathe lernen",
+              priority: "Mittel",
+              completed: false,
+            },
+          ]),
+      });
+
+    render(<App />);
+
+    const inputElement = screen.getByLabelText(/Neues Todo anlegen/i);
+
+    fireEvent.change(inputElement, {
+      target: { value: "Mathe lernen" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Absenden/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Mathe lernen/i)).toBeInTheDocument();
+    });
   });
 });
